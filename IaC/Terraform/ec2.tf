@@ -25,11 +25,6 @@ variable "instance_type" {
   default     = "t2.nano"
 }
 
-variable "ami_id" {
-  type        = string
-  description = "AMI ID to use for the EC2 instance"
-  default     = "ami-075686beab831bb7f"
-}
 
 provider "aws" {
   region = "us-east-1" # Change this to your desired region
@@ -78,7 +73,7 @@ resource "random_string" "random_name" {
 
 # Create EC2 instance
 resource "aws_instance" "app_server" {
-  ami           = var.ami_id
+  ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   subnet_id     = data.aws_subnets.default.ids[0]
   key_name      = aws_key_pair.deployer.key_name

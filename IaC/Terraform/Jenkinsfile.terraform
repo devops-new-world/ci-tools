@@ -16,7 +16,7 @@ pipeline {
             description: 'Select the Jenkins node to run the pipeline'
         )
         string(name: 'INSTANCE_TYPE', defaultValue: 't2.nano', description: 'Instance Type')
-        string(name: 'AMI_ID', defaultValue: 'ami-052cef01758351d39', description: 'AMI ID')
+        // string(name: 'AMI_ID', defaultValue: 'ami-052cef01758351d39', description: 'AMI ID')
         string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch')
         string(name: 'EMAIL_RECIPIENTS', defaultValue: '', description: 'Email recipients (comma-separated)')
         text(name: 'SSH_PUBLIC_KEY', defaultValue: '', description: 'SSH public key for EC2 instance access')
