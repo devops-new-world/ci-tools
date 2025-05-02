@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label "${params.NODE_SELECTION}"
+    }
     
     environment {
         AWS_CREDENTIALS = credentials('aws-credentials')
@@ -8,6 +10,11 @@ pipeline {
     }
     
     parameters {
+        choice(
+            name: 'NODE_SELECTION',
+            choices: ['ubuntu-agent', 'built-in'],
+            description: 'Select the Jenkins node to run the pipeline'
+        )
         string(name: 'INSTANCE_TYPE', defaultValue: 't2.nano', description: 'Instance Type')
         string(name: 'AMI_ID', defaultValue: 'ami-052cef01758351d39', description: 'AMI ID')
         string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch')
@@ -30,6 +37,7 @@ pipeline {
                     echo "Jenkins Node: $NODE_NAME"
                     echo "Build Number: $BUILD_NUMBER"
                     echo "Job Name: $JOB_NAME"
+                    echo "Selected Node: ${params.NODE_SELECTION}"
                 '''
             }
         }
