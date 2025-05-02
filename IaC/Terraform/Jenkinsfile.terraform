@@ -11,7 +11,6 @@ pipeline {
     parameters {
         string(name: 'INSTANCE_TYPE', defaultValue: 't2.nano', description: 'Instance Type')
         string(name: 'AMI_ID', defaultValue: 'ami-052cef01758351d39', description: 'AMI ID')
-        string(name: 'GIT_REPO_URL', defaultValue: '', description: 'Git Repository URL')
         string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch')
         string(name: 'EMAIL_RECIPIENTS', defaultValue: '', description: 'Email recipients (comma-separated)')
         text(name: 'SSH_PUBLIC_KEY', defaultValue: '', description: 'SSH public key for EC2 instance access')
@@ -30,8 +29,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 cleanWs()
-                git branch: params.GIT_BRANCH,
-                    url: params.GIT_REPO_URL
+                checkout scm
             }
         }
         
