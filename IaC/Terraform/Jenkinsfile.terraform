@@ -116,7 +116,7 @@ pipeline {
                     ssh ubuntu@${env.PUBLIC_IP}
                 """,
                 to: params.EMAIL_RECIPIENTS,
-                from: "jenkins@yourdomain.com"
+                from: "openlabfree@gmail.com"
             )
         }
         failure {
