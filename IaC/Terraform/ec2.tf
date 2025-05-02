@@ -76,19 +76,8 @@ resource "random_string" "random_name" {
   upper   = false
 }
 
-data "aws_ec2_instance" "app_server" {
-  filter {
-    name   = "tag:Name"
-    values = ["FileUploadApp"]
-  }
-}
-
-locals {
-  total_machines = length([for instance in aws_instance.app_server : instance.id if lookup(instance.tags, "Name", "") == "FileUploadApp"])
-}
 # Create EC2 instance
 resource "aws_instance" "app_server" {
-  count         = local.total_machines > 7 ? 0 : 1
   ami           = var.ami_id
   instance_type = var.instance_type
   subnet_id     = data.aws_subnets.default.ids[0]
