@@ -18,6 +18,19 @@ variable "public_key_path" {
   description = "Path to the public key file"
 }
 
+# Add variables for EC2 instance
+variable "instance_type" {
+  type        = string
+  description = "Type of EC2 instance to launch"
+  default     = "t2.nano"
+}
+
+variable "ami_id" {
+  type        = string
+  description = "AMI ID to use for the EC2 instance"
+  default     = "ami-075686beab831bb7f"
+}
+
 provider "aws" {
   region = "us-east-1" # Change this to your desired region
 }
@@ -76,8 +89,8 @@ locals {
 # Create EC2 instance
 resource "aws_instance" "app_server" {
   count         = local.total_machines > 7 ? 0 : 1
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.small"
+  ami           = var.ami_id
+  instance_type = var.instance_type
   subnet_id     = data.aws_subnets.default.ids[0]
   key_name      = aws_key_pair.deployer.key_name
 
