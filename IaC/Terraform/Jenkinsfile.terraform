@@ -17,6 +17,23 @@ pipeline {
     }
     
     stages {
+        stage('System Information') {
+            steps {
+                sh '''
+                    echo "System Information:"
+                    echo "-------------------"
+                    echo "Hostname: $(hostname)"
+                    echo "System: $(uname -a)"
+                    echo "Current Directory: $(pwd)"
+                    echo "Current User: $(whoami)"
+                    echo "Working Directory: $WORKSPACE"
+                    echo "Jenkins Node: $NODE_NAME"
+                    echo "Build Number: $BUILD_NUMBER"
+                    echo "Job Name: $JOB_NAME"
+                '''
+            }
+        }
+
         stage('Prepare SSH Key') {
             steps {
                 dir('IaC/Terraform') {
