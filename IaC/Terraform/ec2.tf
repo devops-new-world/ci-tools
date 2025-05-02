@@ -85,7 +85,10 @@ resource "aws_instance" "app_server" {
 
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
-  user_data = file("${path.module}/scripts/user_data.sh")
+  user_data = <<-EOF
+              #!/bin/bash
+              echo "Hello World from user data script"
+              EOF
 
   tags = {
     Name = "FileUploadApp"
