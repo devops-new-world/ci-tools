@@ -70,7 +70,6 @@ pipeline {
                     sh """
                     terraform plan \
                         -var="instance_type=${params.INSTANCE_TYPE}" \
-                        -var="ami_id=${params.AMI_ID}" \
                         -var="key_pair_name=${params.KEY_PAIR_NAME}" \
                         -var="public_key_path=public_key.pub" \
                         -out=tfplan
