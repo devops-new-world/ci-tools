@@ -1,0 +1,114 @@
+pipeline {
+    agent any
+    
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION    = 'us-east-1'
+        TF_IN_AUTOMATION      = '1'
+    }
+    
+    parameters {
+        string(name: 'INSTANCE_TYPE', defaultValue: 't2.nano', description: 'Instance Type')
+        string(name: 'AMI_ID', defaultValue: 'ami-052cef01758351d39', description: 'AMI ID')
+        string(name: 'GIT_REPO_URL', defaultValue: '', description: 'Git Repository URL')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch')
+        string(name: 'EMAIL_RECIPIENTS', defaultValue: '', description: 'Email recipients (comma-separated)')
+        text(name: 'SSH_PUBLIC_KEY', defaultValue: '', description: 'SSH public key for EC2 instance access')
+        string(name: 'KEY_PAIR_NAME', defaultValue: 'terraform-key', description: 'Name for the EC2 key pair')
+    }
+    
+    stages {
+        stage('Prepare SSH Key') {
+            steps {
+                dir('IaC/Terraform') {
+                    writeFile file: 'public_key.pub', text: params.SSH_PUBLIC_KEY
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                cleanWs()
+                git branch: params.GIT_BRANCH,
+                    url: params.GIT_REPO_URL
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                dir('IaC/Terraform') {
+                    sh 'terraform init'
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                dir('IaC/Terraform') {
+                    sh """
+                    terraform plan \
+                        -var="instance_type=${params.INSTANCE_TYPE}" \
+                        -var="ami_id=${params.AMI_ID}" \
+                        -var="key_pair_name=${params.KEY_PAIR_NAME}" \
+                        -var="public_key_path=public_key.pub" \
+                        -out=tfplan
+                    """
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            steps {
+                dir('IaC/Terraform') {
+                    sh 'terraform apply -auto-approve tfplan'
+                }
+            }
+        }
+        
+        stage('Get Public IP') {
+            steps {
+                dir('IaC/Terraform') {
+                    script {
+                        env.PUBLIC_IP = sh(
+                            script: 'terraform output -raw public_ip',
+                            returnStdout: true
+                        ).trim()
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            emailext (
+                subject: "Infrastructure Deployment Successful",
+                body: """
+                    Infrastructure deployment completed successfully!
+                    
+                    Public IP of the new instance: ${env.PUBLIC_IP}
+                    Instance Type: ${params.INSTANCE_TYPE}
+                    AMI ID: ${params.AMI_ID}
+                    Key Pair Name: ${params.KEY_PAIR_NAME}
+                    
+                    You can connect to the instance using:
+                    ssh ubuntu@${env.PUBLIC_IP}
+                """,
+                to: params.EMAIL_RECIPIENTS,
+                from: "jenkins@yourdomain.com"
+            )
+        }
+        failure {
+            emailext (
+                subject: "Infrastructure Deployment Failed",
+                body: "Infrastructure deployment failed. Please check Jenkins logs for details.",
+                to: params.EMAIL_RECIPIENTS,
+                from: "jenkins@yourdomain.com"
+            )
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
