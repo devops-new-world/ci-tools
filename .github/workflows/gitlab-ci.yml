@@ -1,0 +1,34 @@
+# GitLab CI/CD - file name: .gitlab-ci.yml
+# Place this file at the root of your project
+
+ stages:
+  - build
+  - deploy
+
+ variables:
+  NODE_VERSION: "18"
+
+ build:
+  stage: build
+  image: node:18
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - dist/                                    # Change to your build output folder
+    expire_in: 1 hour
+    only:
+      - main
+  
+ pages:
+     stage: deploy
+     image: alpine:latest
+     script:
+      - mkdir -p public
+      - cp -r dist/* public/                       # Change dist to your build output folder
+ artifacts:
+    paths:
+      - public
+  only:
+      - main

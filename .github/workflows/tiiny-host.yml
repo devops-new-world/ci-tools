@@ -1,0 +1,37 @@
+name: Deploy to Tiiny.host
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Zip Build Output
+        run: zip -r build.zip dist/              # Change dist to your build output folder
+
+      - name: Deploy to Tiiny.host
+        run: |
+          curl -X POST https://tiiny.host/api/upload \
+            -H "Authorization: Bearer ${{ secrets.TIINY_API_KEY }}" \
+            -F "file=@build.zip" \
+            -F "subdomain=your-project-name"     # Change to your preferred subdomain
+        # Note: Tiiny.host is better suited for quick/manual uploads
+        # For production, prefer Vercel, Netlify, or Cloudflare Pages
